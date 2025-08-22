@@ -1,5 +1,8 @@
+/** @type {import('next').NextConfig} */
 const nextConfig = {
-  devIndicators: false, // disables all dev indicators
+  devIndicators: false,
+  reactStrictMode: true,
+  swcMinify: true,
 };
 
 export default nextConfig;
