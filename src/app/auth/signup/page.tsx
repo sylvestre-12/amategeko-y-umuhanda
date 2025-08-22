@@ -4,6 +4,17 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
+interface SignupResponse {
+  token?: string;
+  user?: {
+    id: number;
+    fullName: string;
+    phone: string;
+    email?: string;
+  };
+  error?: string;
+}
+
 const SignupPage = () => {
   const router = useRouter();
 
@@ -14,7 +25,8 @@ const SignupPage = () => {
   });
 
   const [status, setStatus] = useState<string | null>(null);
-const [showHelp, setShowHelp] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
@@ -36,7 +48,7 @@ const [showHelp, setShowHelp] = useState(false);
         }),
       });
 
-      const result = await response.json();
+      const result: SignupResponse = await response.json();
 
       if (response.ok) {
         setStatus('✅ Signup successful! Redirecting to login...');
@@ -47,7 +59,7 @@ const [showHelp, setShowHelp] = useState(false);
         setStatus(`❌ Error: ${result.error}`);
       }
     } catch (error) {
-      console.error(error); 
+      console.error(error);
       setStatus('❌ Something went wrong.');
     }
   };
@@ -80,31 +92,38 @@ const [showHelp, setShowHelp] = useState(false);
           }}
         >
           USHAKA KWIGA NO KWISUZUMA AMANOTA <br />
-          WAGIRA UKOZE IKIZAMI MUBIRYANYE N'AMATEGEKO Y'UMUHANDA
+          WAGIRA UKOZE IKIZAMI MUBIRYANYE N&apos;AMATEGEKO Y&apos;UMUHANDA
         </h3>
 
         <h2 style={{ textAlign: 'center', marginBottom: 20 }}>Sign Up</h2>
-        
-          <h3 style={{ textAlign: 'center', cursor: 'pointer', color: '#007bff' }} onClick={() => setShowHelp(!showHelp)}>
-            For Help click here
-          </h3>
 
-          {showHelp && (
-            <div
-              style={{
-                backgroundColor: '#e9ecef',
-                padding: '10px',
-                borderRadius: '8px',
-                marginBottom: '20px',
-                textAlign: 'center',
-                fontSize: '14px',
-                color: '#333',
-              }}
-            >
-              Contact via WhatsApp: <a href="https://wa.me/250786278953" target="_blank" rel="noopener noreferrer">0786278953</a>,<br />
-              Email: <a href="mailto:124tegeri@gmail.com">124tegeri@gmail.com</a>
-            </div>
-          )}
+        <h3
+          style={{ textAlign: 'center', cursor: 'pointer', color: '#007bff' }}
+          onClick={() => setShowHelp(!showHelp)}
+        >
+          For Help click here
+        </h3>
+
+        {showHelp && (
+          <div
+            style={{
+              backgroundColor: '#e9ecef',
+              padding: '10px',
+              borderRadius: '8px',
+              marginBottom: '20px',
+              textAlign: 'center',
+              fontSize: '14px',
+              color: '#333',
+            }}
+          >
+            Contact via WhatsApp:{' '}
+            <a href="https://wa.me/250786278953" target="_blank" rel="noopener noreferrer">
+              0786278953
+            </a>
+            ,<br />
+            Email: <a href="mailto:124tegeri@gmail.com">124tegeri@gmail.com</a>
+          </div>
+        )}
 
         <table cellPadding={10} style={{ width: '100%' }}>
           <tbody>
@@ -151,6 +170,7 @@ const [showHelp, setShowHelp] = useState(false);
                   value={formData.password}
                   onChange={handleChange}
                   style={{ padding: 8, width: '100%' }}
+                  placeholder="Password"
                 />
               </td>
             </tr>

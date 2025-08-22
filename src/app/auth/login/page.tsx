@@ -4,7 +4,20 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
+interface User {
+  id: number;
+  fullName: string;
+  phone: string;
+  email?: string;
+  isAdmin: boolean;
+}
 
+interface LoginResponse {
+  message?: string;
+  token?: string;
+  user?: User;
+  error?: string;
+}
 
 const LoginPage = () => {
   const router = useRouter();
@@ -13,9 +26,7 @@ const LoginPage = () => {
   const [otp, setOtp] = useState('');
   const [awaitingOtp, setAwaitingOtp] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
-const [showHelp, setShowHelp] = useState(false);
-
-
+  const [showHelp, setShowHelp] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -32,13 +43,13 @@ const [showHelp, setShowHelp] = useState(false);
         body: JSON.stringify(formData),
       });
 
-      const result = await response.json();
+      const result: LoginResponse = await response.json();
 
       if (response.ok) {
         if (result.message === 'OTP sent to admin email') {
           setAwaitingOtp(true);
           setStatus('✅ OTP sent. Please check your email.');
-        } else {
+        } else if (result.token && result.user) {
           localStorage.setItem('token', result.token);
           localStorage.setItem('user', JSON.stringify(result.user));
           router.push('/test');
@@ -47,6 +58,7 @@ const [showHelp, setShowHelp] = useState(false);
         setStatus(`❌ Error: ${result.error}`);
       }
     } catch (err) {
+      console.error(err);
       setStatus('❌ Network or server error.');
     }
   };
@@ -62,9 +74,9 @@ const [showHelp, setShowHelp] = useState(false);
         body: JSON.stringify({ phone: formData.phone, otp }),
       });
 
-      const result = await response.json();
+      const result: LoginResponse = await response.json();
 
-      if (response.ok) {
+      if (response.ok && result.token && result.user) {
         localStorage.setItem('token', result.token);
         localStorage.setItem('user', JSON.stringify(result.user));
         router.push('/admin/dashboard');
@@ -72,6 +84,7 @@ const [showHelp, setShowHelp] = useState(false);
         setStatus(`❌ Error: ${result.error}`);
       }
     } catch (err) {
+      console.error(err);
       setStatus('❌ Failed to verify OTP.');
     }
   };
@@ -90,26 +103,29 @@ const [showHelp, setShowHelp] = useState(false);
           }}
         >
           <h3
-  style={{
-    fontSize: '18px',
-    fontWeight: 'bold',
-    color: '#d9534f', // eye-catching red
-    textAlign: 'center',
-    lineHeight: '1.6',
-    backgroundColor: '#fff3cd', // light yellow background
-    padding: '10px',
-    borderRadius: '8px',
-    border: '1px solid #f0ad4e', // gold border
-    marginBottom: '20px',
-  }}
->
-  UGIYE KWIGA AMATEGEKO Y'UMUHANDA<br />
-  CYANGWA UREBE AMANOTA WAGIRA
-</h3>
+            style={{
+              fontSize: '18px',
+              fontWeight: 'bold',
+              color: '#d9534f',
+              textAlign: 'center',
+              lineHeight: '1.6',
+              backgroundColor: '#fff3cd',
+              padding: '10px',
+              borderRadius: '8px',
+              border: '1px solid #f0ad4e',
+              marginBottom: '20px',
+            }}
+          >
+            UGIYE KWIGA AMATEGEKO Y&apos;UMUHANDA<br />
+            CYANGWA UREBE AMANOTA WAGIRA
+          </h3>
 
           <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>Login</h2>
-         
-          <h3 style={{ textAlign: 'center', cursor: 'pointer', color: '#007bff' }} onClick={() => setShowHelp(!showHelp)}>
+
+          <h3
+            style={{ textAlign: 'center', cursor: 'pointer', color: '#007bff' }}
+            onClick={() => setShowHelp(!showHelp)}
+          >
             For Help click here
           </h3>
 
@@ -125,7 +141,11 @@ const [showHelp, setShowHelp] = useState(false);
                 color: '#333',
               }}
             >
-              Contact via WhatsApp: <a href="https://wa.me/250786278953" target="_blank" rel="noopener noreferrer">0786278953</a>,<br />
+              Contact via WhatsApp:{' '}
+              <a href="https://wa.me/250786278953" target="_blank" rel="noopener noreferrer">
+                0786278953
+              </a>
+              ,<br />
               Email: <a href="mailto:124tegeri@gmail.com">124tegeri@gmail.com</a>
             </div>
           )}
@@ -133,7 +153,9 @@ const [showHelp, setShowHelp] = useState(false);
           <table cellPadding="10" style={{ width: '100%' }}>
             <tbody>
               <tr>
-                <td><label htmlFor="phone">Phone:</label></td>
+                <td>
+                  <label htmlFor="phone">Phone:</label>
+                </td>
                 <td>
                   <input
                     type="text"
@@ -149,7 +171,9 @@ const [showHelp, setShowHelp] = useState(false);
               </tr>
 
               <tr>
-                <td><label htmlFor="password">Password:</label></td>
+                <td>
+                  <label htmlFor="password">Password:</label>
+                </td>
                 <td>
                   <input
                     type="password"
@@ -167,23 +191,33 @@ const [showHelp, setShowHelp] = useState(false);
               <tr>
                 <td colSpan={2} style={{ textAlign: 'center', paddingBottom: '15px' }}>
                   <p style={{ margin: '5px 0' }}>
-                    <Link href="/auth/signup" style={{ color: '#007bff', textDecoration: 'underline' }}>
-                      Don’t have an account? Sign up
+                    <Link
+                      href="/auth/signup"
+                      style={{ color: '#007bff', textDecoration: 'underline' }}
+                    >
+                      Don&apos;t have an account? Sign up
                     </Link>
                   </p>
-                 <p style={{ margin: '5px 0' }}>
-  {formData.phone === '0786278953' ? (
-    <Link href="/auth/forgot-password" style={{ color: '#007bff', textDecoration: 'underline' }}>
-      Forgot your password?
-    </Link>
-  ) : (
-    // Optionally, render plain text or nothing if phone doesn't match
-    <span style={{ color: 'gray', cursor: 'not-allowed', userSelect: 'none' }}>
-      Forgot your password?
-    </span>
-  )}
-</p>
-
+                  <p style={{ margin: '5px 0' }}>
+                    {formData.phone === '0786278953' ? (
+                      <Link
+                        href="/auth/forgot-password"
+                        style={{ color: '#007bff', textDecoration: 'underline' }}
+                      >
+                        Forgot your password?
+                      </Link>
+                    ) : (
+                      <span
+                        style={{
+                          color: 'gray',
+                          cursor: 'not-allowed',
+                          userSelect: 'none',
+                        }}
+                      >
+                        Forgot your password?
+                      </span>
+                    )}
+                  </p>
                 </td>
               </tr>
 
@@ -209,7 +243,13 @@ const [showHelp, setShowHelp] = useState(false);
           </table>
 
           {status && (
-            <p style={{ marginTop: '20px', textAlign: 'center', color: status.includes('Error') ? 'red' : 'green' }}>
+            <p
+              style={{
+                marginTop: '20px',
+                textAlign: 'center',
+                color: status.includes('Error') ? 'red' : 'green',
+              }}
+            >
               {status}
             </p>
           )}

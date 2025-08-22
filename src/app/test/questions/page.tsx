@@ -59,13 +59,13 @@ export default function QuestionList() {
 
     const content = isImg ? (
       <img
-        src={text.startsWith('/') ? text : `/images/${text}`} // ✅ prepend /images/ if needed
+        src={text.startsWith('/') ? text : `/images/${text}`}
         alt={label}
         style={{ maxWidth: 80, maxHeight: 60 }}
         onError={(e) => (e.currentTarget.src = '/fallback.png')}
       />
     ) : (
-      text
+      <span dangerouslySetInnerHTML={{ __html: text }} />
     );
 
     return (
@@ -77,8 +77,8 @@ export default function QuestionList() {
           display: 'flex',
           alignItems: 'center',
           gap: '6px',
+          marginLeft: '16px',
         }}
-        className="ml-4 font-medium"
       >
         <span>{label.toUpperCase()}.</span> {content}
         {isCorrect && <span aria-label="correct answer" role="img">✅</span>}
@@ -88,7 +88,7 @@ export default function QuestionList() {
 
   return (
     <div className="p-4 max-w-3xl mx-auto font-sans relative">
-      {/* Fixed Back Button */}
+      {/* Back Button */}
       <button
         onClick={() => router.push('/test')}
         style={{
@@ -108,7 +108,7 @@ export default function QuestionList() {
         ⬅ Back
       </button>
 
-      {/* Fixed For Help Rectangle */}
+      {/* For Help Button */}
       <div
         style={{
           position: 'fixed',
@@ -129,7 +129,7 @@ export default function QuestionList() {
         For Help
       </div>
 
-      {/* Fixed Help Box */}
+      {/* Help Box */}
       {showHelp && (
         <div
           style={{
@@ -160,7 +160,7 @@ export default function QuestionList() {
         </div>
       )}
 
-      {/* Question List */}
+      {/* Questions List */}
       {questions.map((q, i) => (
         <div
           key={q.id}
@@ -171,9 +171,9 @@ export default function QuestionList() {
           }}
         >
           <p
-  className="mb-2 font-semibold text-lg text-gray-900"
-  dangerouslySetInnerHTML={{ __html: `${i + 1}. ${q.question}` }}
-/>
+            className="mb-2 font-semibold text-lg text-gray-900"
+            dangerouslySetInnerHTML={{ __html: `${i + 1}. ${q.question}` }}
+          />
 
           {renderOption('a', q.optionA, q.correct)}
           {renderOption('b', q.optionB, q.correct)}
