@@ -47,6 +47,7 @@ const [showHelp, setShowHelp] = useState(false);
         setStatus(`❌ Error: ${result.error}`);
       }
     } catch (error) {
+      console.error(error); 
       setStatus('❌ Something went wrong.');
     }
   };

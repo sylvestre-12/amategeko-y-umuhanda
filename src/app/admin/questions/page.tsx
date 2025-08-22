@@ -7,7 +7,7 @@ import React, {
   FormEvent,
   useRef,
 } from 'react';
-import { useRouter } from 'next/navigation'; // ✅ Added for back navigation
+import { useRouter } from 'next/navigation';
 
 type Question = {
   id: number;
@@ -21,7 +21,7 @@ type Question = {
 };
 
 export default function ManageQuestions() {
-  const router = useRouter(); // ✅ Initialize router
+  const router = useRouter();
   const [questions, setQuestions] = useState<Question[]>([]);
   const [form, setForm] = useState<Omit<Question, 'id' | 'createdAt'>>({
     question: '',
@@ -37,7 +37,6 @@ export default function ManageQuestions() {
   const [searchTerm, setSearchTerm] = useState('');
   const searchTimeout = useRef<NodeJS.Timeout | null>(null);
 
-  // Fetch questions with optional search
   const fetchQuestions = async (search = '') => {
     try {
       const url = new URL('/api/admin/questions/list', window.location.origin);
@@ -51,8 +50,8 @@ export default function ManageQuestions() {
       setQuestions(json.questions);
       setError(null);
     } catch (err) {
-      setError('Error fetching questions.');
       console.error(err);
+      setError('Error fetching questions.');
     }
   };
 
@@ -60,7 +59,6 @@ export default function ManageQuestions() {
     fetchQuestions();
   }, []);
 
-  // Debounced search input handler
   const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setSearchTerm(value);
@@ -68,12 +66,10 @@ export default function ManageQuestions() {
     searchTimeout.current = setTimeout(() => fetchQuestions(value), 400);
   };
 
-  // Form input handler
   const handleInput = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
 
-  // Reset form
   const resetForm = () => {
     setForm({
       question: '',
@@ -86,7 +82,6 @@ export default function ManageQuestions() {
     setEditingId(null);
   };
 
-  // Add or update question submit handler
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -115,7 +110,6 @@ export default function ManageQuestions() {
     }
   };
 
-  // Load question for editing
   const handleEdit = (q: Question) => {
     setForm({
       question: q.question,
@@ -128,7 +122,6 @@ export default function ManageQuestions() {
     setEditingId(q.id);
   };
 
-  // Delete question
   const handleDelete = async (id: number) => {
     if (!confirm('Are you sure you want to delete this question?')) return;
     setLoading(true);
@@ -153,7 +146,7 @@ export default function ManageQuestions() {
     }
   };
 
-  // Render text or image option
+  // ✅ Corrected: use native <img> tag instead of <Img>
   const renderOption = (opt: string, isCorrect: boolean) => {
     const isImg = /\.(jpeg|jpg|png|svg|gif|webp)$/i.test(opt.trim());
     const className = isCorrect ? 'text-red-600 font-bold' : '';
@@ -171,7 +164,6 @@ export default function ManageQuestions() {
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
-      {/* ✅ Back button */}
       <button
         onClick={() => router.push('/admin/dashboard/')}
         className="mb-4 px-4 py-2 bg-gray-600 text-white rounded"
@@ -251,12 +243,9 @@ export default function ManageQuestions() {
             </button>
           )}
         </div>
-
       </form>
 
-      <h2 style={{ color: 'red' }} className="text-xl font-semibold mb-4">
-        📚 Question Bank
-      </h2>
+      <h2 className="text-xl font-semibold mb-4 text-red-600">📚 Question Bank</h2>
 
       {error && <p className="text-red-600 mb-4">{error}</p>}
 
@@ -288,10 +277,9 @@ export default function ManageQuestions() {
                   <tr className="hover:bg-gray-50">
                     <td className="px-4 py-2">{q.id}</td>
                     <td
-  className="px-4 py-2"
-  dangerouslySetInnerHTML={{ __html: q.question }}
-/>
-
+                      className="px-4 py-2"
+                      dangerouslySetInnerHTML={{ __html: q.question }}
+                    />
                     <td className="px-4 py-2">{renderOption(q.optionA, q.correct === 'a')}</td>
                     <td className="px-4 py-2">{renderOption(q.optionB, q.correct === 'b')}</td>
                     <td className="px-4 py-2">{renderOption(q.optionC, q.correct === 'c')}</td>
