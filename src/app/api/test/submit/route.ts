@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server';
 const prisma = new PrismaClient();
 
 type AnswerPayload = {
-  questionId: string;
+  questionId: string; // ✅ must be string because Question.id is a UUID
   selected: 'A' | 'B' | 'C' | 'D';
 };
 
@@ -21,51 +21,58 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid input' }, { status: 400 });
     }
 
-    // Convert answers array to a map: { questionId: selected }
+    // ✅ Convert answers into lookup map { questionId: "A" }
     const answersMap: Record<string, string> = answers.reduce(
-      (acc, ans) => ({ ...acc, [ans.questionId]: ans.selected }),
+      (acc, ans) => {
+        acc[ans.questionId] = ans.selected.toUpperCase();
+        return acc;
+      },
       {} as Record<string, string>
     );
+// ✅ Only allow first 20 unique answers
+const questionIds = [...new Set(Object.keys(answersMap))].slice(0, 20);
 
-    // Fetch correct answers for these questions
-    const questionIds = answers.map(a => a.questionId);
-    const correctAnswers = await prisma.question.findMany({
-      where: { id: { in: questionIds } },
-      select: { id: true, correctAnswer: true },
-    });
+const correctAnswers = await prisma.question.findMany({
+  where: { id: { in: questionIds } },
+  select: { id: true, correctAnswer: true },
+});
 
-    // Calculate score (out of 20)
-    let score = 0;
-    const detailedResults = correctAnswers.map(q => {
-      const userAnswer = answersMap[q.id];
-      const isCorrect = userAnswer === q.correctAnswer;
-      if (isCorrect) score++;
-      return { questionId: q.id, correctAnswer: q.correctAnswer, userAnswer, isCorrect };
-    });
+let score = 0;
+const detailedResults = correctAnswers.map((q) => {
+  const userAnswer = answersMap[q.id];
+  const correct = q.correctAnswer.toUpperCase();
+  const isCorrect = userAnswer === correct;
+  if (isCorrect) score++;
+  return { questionId: q.id, correctAnswer: correct, userAnswer, isCorrect };
+});
 
-    // Save attempt and test history in a transaction
-    const attempt = await prisma.$transaction(async prisma => {
-      const newAttempt = await prisma.attempt.create({
+const totalQuestions = 20; // fixed maximum
+score = Math.min(score, totalQuestions);
+const percentage = (score / totalQuestions) * 100;
+
+
+
+    // ✅ Save attempt + history in transaction
+    const [attempt, history] = await prisma.$transaction([
+      prisma.attempt.create({
         data: {
           userId,
           score,
           startedAt: new Date(startedAt),
           finishedAt: new Date(finishedAt),
         },
-      });
-
-      await prisma.testHistory.create({
+      }),
+      prisma.testHistory.create({
         data: { userId, score },
-      });
-
-      return newAttempt;
-    });
+      }),
+    ]);
 
     return NextResponse.json({
       message: 'Test submitted successfully',
       attempt,
-      score, // marks out of 20
-      detailedResults, // optional: shows per-question feedback
+      score,
+      percentage,
+      detailedResults,
     });
   } catch (error) {
     console.error('Error submitting test:', error);
