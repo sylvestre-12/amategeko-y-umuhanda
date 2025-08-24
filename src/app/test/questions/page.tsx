@@ -26,8 +26,9 @@ export default function QuestionList() {
   const [loading, setLoading] = useState(true);
   const [showHelp, setShowHelp] = useState(false);
 
+  // Fetch questions from API
   useEffect(() => {
-    async function fetchQuestions() {
+    const fetchQuestions = async () => {
       try {
         const res = await fetch('/api/admin/questions/list');
         if (!res.ok) throw new Error(`HTTP error ${res.status}`);
@@ -39,12 +40,13 @@ export default function QuestionList() {
         } else {
           setError(json.error || 'Error loading questions');
         }
-      } catch (err: any) {
-        setError(err.message || 'Network error');
+      } catch (err: unknown) {
+        if (err instanceof Error) setError(err.message);
+        else setError('Unknown error');
       } finally {
         setLoading(false);
       }
-    }
+    };
 
     fetchQuestions();
   }, []);
@@ -53,6 +55,7 @@ export default function QuestionList() {
   if (error) return <p className="text-red-600 p-4">{error}</p>;
   if (questions.length === 0) return <p className="p-4">No questions found.</p>;
 
+  // Render each option with support for images
   const renderOption = (label: 'a' | 'b' | 'c' | 'd', text: string, correct: string) => {
     const isCorrect = label.toLowerCase() === correct.toLowerCase();
     const isImg = /\.(jpeg|jpg|png|svg|gif|webp)$/i.test(text.trim());
@@ -62,7 +65,7 @@ export default function QuestionList() {
         src={text.startsWith('/') ? text : `/images/${text}`}
         alt={label}
         style={{ maxWidth: 80, maxHeight: 60 }}
-        onError={(e) => (e.currentTarget.src = '/fallback.png')}
+        onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/fallback.png'; }}
       />
     ) : (
       <span dangerouslySetInnerHTML={{ __html: text }} />
@@ -76,8 +79,8 @@ export default function QuestionList() {
           fontWeight: isCorrect ? 'bold' : 'normal',
           display: 'flex',
           alignItems: 'center',
-          gap: '6px',
-          marginLeft: '16px',
+          gap: 6,
+          marginLeft: 16,
         }}
       >
         <span>{label.toUpperCase()}.</span> {content}
@@ -93,13 +96,13 @@ export default function QuestionList() {
         onClick={() => router.push('/test')}
         style={{
           position: 'fixed',
-          right: '20px',
+          right: 20,
           top: '50%',
           transform: 'translateY(-50%)',
           backgroundColor: '#007bff',
           color: 'white',
           padding: '12px 16px',
-          borderRadius: '8px',
+          borderRadius: 8,
           boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
           zIndex: 999,
           cursor: 'pointer',
@@ -108,20 +111,20 @@ export default function QuestionList() {
         ⬅ Back
       </button>
 
-      {/* For Help Button */}
+      {/* Help Button */}
       <div
         style={{
           position: 'fixed',
-          right: '20px',
-          top: '10px',
+          right: 20,
+          top: 10,
           backgroundColor: 'red',
           color: 'white',
           fontWeight: 'bold',
           padding: '6px 12px',
-          borderRadius: '6px',
+          borderRadius: 6,
           cursor: 'pointer',
           zIndex: 999,
-          fontSize: '14px',
+          fontSize: 14,
           textAlign: 'center',
         }}
         onClick={() => setShowHelp(!showHelp)}
@@ -134,24 +137,20 @@ export default function QuestionList() {
         <div
           style={{
             position: 'fixed',
-            right: '20px',
-            top: '45px',
+            right: 20,
+            top: 45,
             backgroundColor: '#e9ecef',
-            padding: '10px',
-            borderRadius: '6px',
-            width: '220px',
+            padding: 10,
+            borderRadius: 6,
+            width: 220,
             textAlign: 'center',
-            fontSize: '12px',
+            fontSize: 12,
             color: '#333',
             zIndex: 999,
           }}
         >
           Contact via WhatsApp:{' '}
-          <a
-            href="https://wa.me/250786278953"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
+          <a href="https://wa.me/250786278953" target="_blank" rel="noopener noreferrer">
             0786278953
           </a>
           <br />
@@ -165,8 +164,8 @@ export default function QuestionList() {
         <div
           key={q.id}
           style={{
-            marginBottom: '16px',
-            paddingBottom: '12px',
+            marginBottom: 16,
+            paddingBottom: 12,
             borderBottom: '2px solid #ccc',
           }}
         >
@@ -174,7 +173,6 @@ export default function QuestionList() {
             className="mb-2 font-semibold text-lg text-gray-900"
             dangerouslySetInnerHTML={{ __html: `${i + 1}. ${q.question}` }}
           />
-
           {renderOption('a', q.optionA, q.correct)}
           {renderOption('b', q.optionB, q.correct)}
           {renderOption('c', q.optionC, q.correct)}

@@ -54,21 +54,23 @@ export default function ExamPage() {
     } else {
       localStorage.setItem('startTime', new Date().toISOString());
     }
-  }, []);
+  }, [router]);
 
   useEffect(() => {
     if (!questions.length) return;
     timerRef.current = window.setInterval(() => {
       setTimeLeft(prev => {
         if (prev <= 1) {
-          clearInterval(timerRef.current!);
+          if (timerRef.current) clearInterval(timerRef.current);
           void handleSubmit();
           return 0;
         }
         return prev - 1;
       });
     }, 1000);
-    return () => clearInterval(timerRef.current!);
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
   }, [questions.length]);
 
   const formatTime = (seconds: number) => {
@@ -118,7 +120,6 @@ export default function ExamPage() {
 
   if (!currentQuestion) return <p>Loading questions...</p>;
 
-  // Render an option (HTML or text)
   const renderOption = (opt: 'A' | 'B' | 'C' | 'D', label: string) => {
     const checked = answers[currentQuestion.id] === opt;
     return (
@@ -141,8 +142,7 @@ export default function ExamPage() {
           onChange={() => selectOption(currentQuestion.id, opt)}
           style={{ marginRight: 6 }}
         />
-        {opt}.{' '}
-        <span dangerouslySetInnerHTML={{ __html: label }} />
+        {opt}. <span dangerouslySetInnerHTML={{ __html: label }} />
       </label>
     );
   };
@@ -169,7 +169,7 @@ export default function ExamPage() {
             src={currentQuestion.image}
             alt="question"
             style={{ maxWidth: 250, display: 'block', marginTop: 10 }}
-            onError={(e) => (e.currentTarget.src = '/images/fallback.png')}
+            onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/images/fallback.png'; }}
           />
         )}
       </div>
